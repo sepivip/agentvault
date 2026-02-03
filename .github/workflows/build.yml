@@ -46,16 +46,15 @@ jobs:
       - name: Install Anchor CLI
         run: |
           cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli --force
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: yarn install
 
       - name: Generate keypair
-        run: solana-keygen new --no-bip39-passphrase
+        run: solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json
 
       - name: Build program
-        run: $HOME/.cargo/bin/anchor build
+        run: anchor build
 
       - name: Run tests
-        run: $HOME/.cargo/bin/anchor test
+        run: anchor test --skip-local-validator
