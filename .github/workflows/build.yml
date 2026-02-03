@@ -41,6 +41,15 @@ jobs:
           solana --version
           solana-keygen --version
 
+      - name: Install Rust 1.76 (lockfile compatibility)
+        uses: dtolnay/rust-toolchain@1.76.0
+
+      - name: Regenerate Cargo.lock (v3)
+        run: |
+          rm -f Cargo.lock
+          cargo +1.76.0 generate-lockfile
+          head -n 3 Cargo.lock
+
       - name: Install dependencies
         run: yarn install
 
