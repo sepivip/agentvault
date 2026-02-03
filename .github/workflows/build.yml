@@ -39,7 +39,7 @@ jobs:
       - name: Generate keypair
         run: |
           mkdir -p ~/.config/solana
-          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json
+          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json --force
           solana config set --url localhost
 
       - name: Build program
