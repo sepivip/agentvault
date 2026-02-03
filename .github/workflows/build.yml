@@ -51,7 +51,10 @@ jobs:
         run: yarn install
 
       - name: Generate keypair
-        run: solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json
+        run: |
+          mkdir -p ~/.config/solana
+          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json
+          solana config set --url localhost
 
       - name: Build program
         run: anchor build
