@@ -25,6 +25,20 @@ jobs:
           anchor_version: ${{ env.ANCHOR_VERSION }}
           node_version: 20
 
+      - name: Install Rust 1.76 (lockfile compatibility)
+        uses: dtolnay/rust-toolchain@1.76.0
+
+      - name: Ensure Cargo bin on PATH
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Regenerate Cargo.lock (v3)
+        run: |
+          rm -f Cargo.lock
+          cargo +1.76.0 generate-lockfile
+          cargo +1.76.0 update -p borsh@1.6.0 --precise 1.5.1
+          cargo +1.76.0 update -p borsh-derive@1.6.0 --precise 1.5.1
+          head -n 3 Cargo.lock
+
       - name: Install dependencies
         run: yarn install
 
