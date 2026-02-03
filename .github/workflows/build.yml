@@ -25,57 +25,17 @@ jobs:
           anchor_version: ${{ env.ANCHOR_VERSION }}
           node_version: 20
 
-      - name: Install Rust (stable)
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Ensure Cargo bin on PATH
-        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Verify Rust
-        run: |
-          rustc --version
-          cargo --version
-
-      - name: Verify Solana
-        run: |
-          solana --version
-          solana-keygen --version
-
-      - name: Install Rust 1.76 (lockfile compatibility)
-        uses: dtolnay/rust-toolchain@1.76.0
-
-      - name: Regenerate Cargo.lock (v3)
-        run: |
-          rm -f Cargo.lock
-          cargo +1.76.0 generate-lockfile
-          cargo +1.76.0 update -p borsh@1.6.0 --precise 1.5.1
-          cargo +1.76.0 update -p borsh-derive@1.6.0 --precise 1.5.1
-          head -n 3 Cargo.lock
-
       - name: Install dependencies
         run: yarn install
 
       - name: Generate keypair
         run: |
           mkdir -p target/deploy
-          solana-keygen new --no-bip39-passphrase -o target/deploy/agentvault-keypair.json --force >/tmp/solana-keygen.log 2>&1
-          if [ $? -ne 0 ]; then
-            cat /tmp/solana-keygen.log
-            exit 1
-          fi
-          rm -f /tmp/solana-keygen.log
+          solana-keygen new --no-bip39-passphrase -o target/deploy/agentvault-keypair.json --force
           solana config set --url localhost
 
       - name: Build program
-        env:
-          RUSTUP_TOOLCHAIN: stable
-        run: |
-          export PATH="$HOME/.cargo/bin:$PATH"
-          export CARGO="$HOME/.cargo/bin/cargo"
-          export RUSTC="$HOME/.cargo/bin/rustc"
-          cargo --version
-          rustc --version
-          anchor build
+        run: anchor build
 
       - name: Run tests
         run: anchor test --skip-local-validator
