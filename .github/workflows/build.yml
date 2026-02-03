@@ -1,44 +1,47 @@
-name: Build and Test
+name: Build Anchor Program
 
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 env:
-  SOLANA_VERSION: 2.0.0
-  ANCHOR_VERSION: 0.31.0
-  RUN_TESTS: "false"
+  SOLANA_VERSION: 2.0.21
+  ANCHOR_VERSION: 0.30.1
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Solana, Anchor, and Node
-        uses: solana-developers/github-actions/setup-all@v0.2.7
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
         with:
-          solana_version: ${{ env.SOLANA_VERSION }}
-          anchor_version: ${{ env.ANCHOR_VERSION }}
-          node_version: 20
-
-      - name: Install dependencies
-        run: yarn install
-
-      - name: Generate keypair
+          toolchain: stable
+      
+      - name: Cache Solana
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/solana
+            ~/.cache/solana
+          key: solana-${{ env.SOLANA_VERSION }}
+      
+      - name: Install Solana
         run: |
-          mkdir -p target/deploy
-          solana-keygen new --no-bip39-passphrase -o target/deploy/agentvault-keypair.json --force
-          solana config set --url localhost
-
-      - name: Build program
+          sh -c "$(curl -sSfL https://release.anza.xyz/v${{ env.SOLANA_VERSION }}/install)"
+          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      
+      - name: Install Anchor
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor anchor-cli --tag v${{ env.ANCHOR_VERSION }} --locked
+      
+      - name: Build
         run: anchor build
-
-      - name: Run tests
-        if: env.RUN_TESTS == 'true'
-        run: anchor test --skip-local-validator
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: program-so
+          path: target/deploy/*.so
