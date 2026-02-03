@@ -9,6 +9,7 @@ on:
 env:
   SOLANA_VERSION: 1.18.26
   ANCHOR_VERSION: 0.30.1
+  SOLANA_INSTALL_DIR: /home/runner/.local/share/solana
 
 jobs:
   build:
@@ -40,8 +41,16 @@ jobs:
 
       - name: Install Solana
         run: |
-          sh -c "$(curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install)"
-          echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+          curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh
+          echo "${{ env.SOLANA_INSTALL_DIR }}/install/active_release/bin" >> $GITHUB_PATH
+
+      - name: Verify Solana
+        run: |
+          solana --version
+          solana-keygen --version
+
+      - name: Ensure Cargo bin on PATH
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Install Anchor CLI
         run: |
