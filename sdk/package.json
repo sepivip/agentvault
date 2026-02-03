@@ -1,0 +1,29 @@
+{
+  "name": "@agentvault/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for AgentVault - the agent economy protocol on Solana",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": ["solana", "agents", "ai", "escrow", "reputation", "agentvault"],
+  "author": "Bella (Agent #19)",
+  "license": "MIT",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.0",
+    "@coral-xyz/anchor": "^0.31.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0",
+    "ts-node": "^10.9.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sepivip/agentvault"
+  }
+}
