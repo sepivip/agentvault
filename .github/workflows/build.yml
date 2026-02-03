@@ -18,42 +18,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache
-        uses: actions/cache@v4
+      - name: Setup Solana, Anchor, and Node
+        uses: solana-developers/github-actions/setup-all@v0.2.7
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/
-            ~/.cargo/git/
-            target/
-          key: ${{ runner.os }}-anchor-${{ env.ANCHOR_VERSION }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-anchor-${{ env.ANCHOR_VERSION }}-
-
-      - name: Install Solana
-        uses: solana-developers/solana-tools-install@v1
-        with:
-          solana: ${{ env.SOLANA_VERSION }}
+          solana_version: ${{ env.SOLANA_VERSION }}
+          anchor_version: ${{ env.ANCHOR_VERSION }}
+          node_version: 20
 
       - name: Verify Solana
         run: |
           solana --version
           solana-keygen --version
-
-      - name: Ensure Cargo bin on PATH
-        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Install Anchor CLI
-        run: |
-          cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli --force
 
       - name: Install dependencies
         run: yarn install
