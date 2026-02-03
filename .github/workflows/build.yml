@@ -48,13 +48,6 @@ jobs:
           cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli --force
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Verify installations
-        run: |
-          solana --version
-          rustc --version
-          ls -la $HOME/.cargo/bin/
-          $HOME/.cargo/bin/anchor --version || true
-
       - name: Install dependencies
         run: yarn install
 
