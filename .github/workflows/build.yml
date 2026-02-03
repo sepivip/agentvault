@@ -42,7 +42,7 @@ jobs:
       - name: Install Solana
         run: |
           set -euo pipefail
-          curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh
+          curl --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 300 -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh
           SOLANA_BIN="$HOME/.local/share/solana/install/active_release/bin"
           echo "$SOLANA_BIN" >> $GITHUB_PATH
           echo "PATH=$SOLANA_BIN:$PATH" >> $GITHUB_ENV
