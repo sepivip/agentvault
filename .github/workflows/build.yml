@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 env:
-  SOLANA_VERSION: 1.18.26
-  ANCHOR_VERSION: 0.30.1
+  SOLANA_VERSION: 2.0.0
+  ANCHOR_VERSION: 0.31.0
   RUN_TESTS: "false"
 
 jobs:
@@ -25,21 +25,6 @@ jobs:
           solana_version: ${{ env.SOLANA_VERSION }}
           anchor_version: ${{ env.ANCHOR_VERSION }}
           node_version: 20
-
-      - name: Install Rust 1.76 (lockfile compatibility)
-        uses: dtolnay/rust-toolchain@1.76.0
-
-      - name: Ensure Cargo bin on PATH
-        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Regenerate Cargo.lock (v3)
-        run: |
-          rm -f Cargo.lock
-          cargo +1.76.0 generate-lockfile
-          cargo +1.76.0 update -p borsh@1.6.0 --precise 1.5.1
-          cargo +1.76.0 update -p borsh-derive@1.5.7 --precise 1.5.1
-          cargo +1.76.0 update -p wit-bindgen@0.51.0 --precise 0.50.0
-          head -n 3 Cargo.lock
 
       - name: Install dependencies
         run: yarn install
