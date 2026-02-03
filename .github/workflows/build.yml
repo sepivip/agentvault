@@ -18,15 +18,23 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Setup Solana, Anchor, and Node
         uses: solana-developers/github-actions/setup-all@v0.2.7
         with:
           solana_version: ${{ env.SOLANA_VERSION }}
           anchor_version: ${{ env.ANCHOR_VERSION }}
           node_version: 20
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Ensure Cargo bin on PATH
+        run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+
+      - name: Verify Rust
+        run: |
+          rustc --version
+          cargo --version
 
       - name: Verify Solana
         run: |
