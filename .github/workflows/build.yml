@@ -56,7 +56,15 @@ jobs:
           solana config set --url localhost
 
       - name: Build program
-        run: anchor build
+        env:
+          RUSTUP_TOOLCHAIN: stable
+        run: |
+          export PATH="$HOME/.cargo/bin:$PATH"
+          export CARGO="$HOME/.cargo/bin/cargo"
+          export RUSTC="$HOME/.cargo/bin/rustc"
+          cargo --version
+          rustc --version
+          anchor build
 
       - name: Run tests
         run: anchor test --skip-local-validator
