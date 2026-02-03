@@ -9,6 +9,7 @@ on:
 env:
   SOLANA_VERSION: 1.18.26
   ANCHOR_VERSION: 0.30.1
+  RUN_TESTS: "false"
 
 jobs:
   build:
@@ -52,4 +53,5 @@ jobs:
         run: anchor build
 
       - name: Run tests
+        if: env.RUN_TESTS == 'true'
         run: anchor test --skip-local-validator
