@@ -42,8 +42,34 @@ jobs:
       - name: Install Solana
         run: |
           set -euo pipefail
-          curl --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 300 -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh
           SOLANA_BIN="$HOME/.local/share/solana/install/active_release/bin"
+
+          # Try official installer first (sometimes TLS/IPv6 flakes on runners).
+          if ! curl -4 --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 300 -sSfL \
+            https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh; then
+            echo "release.solana.com failed, falling back to GitHub release asset"
+            ASSET_URL=$(python3 - <<'PY'
+import json, os, sys, urllib.request
+v = os.environ["SOLANA_VERSION"]
+url = f"https://api.github.com/repos/solana-labs/solana/releases/tags/v{v}"
+data = json.load(urllib.request.urlopen(url))
+asset = None
+for a in data.get("assets", []):
+    name = a.get("name", "")
+    if name.endswith("x86_64-unknown-linux-gnu.tar.bz2"):
+        asset = a.get("browser_download_url")
+        break
+if not asset:
+    sys.exit("No Linux x86_64 asset found for Solana release")
+print(asset)
+PY
+            )
+            curl -4 --retry 5 --retry-delay 5 --retry-connrefused --connect-timeout 30 --max-time 300 -sSfL \
+              "$ASSET_URL" -o /tmp/solana.tar.bz2
+            mkdir -p "$HOME/.local/share/solana/install"
+            tar -xjf /tmp/solana.tar.bz2 -C "$HOME/.local/share/solana/install"
+            ln -sfn "$HOME/.local/share/solana/install/solana-release" "$HOME/.local/share/solana/install/active_release"
+          fi
           echo "$SOLANA_BIN" >> $GITHUB_PATH
           echo "PATH=$SOLANA_BIN:$PATH" >> $GITHUB_ENV
           export PATH="$SOLANA_BIN:$PATH"
