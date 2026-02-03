@@ -41,11 +41,12 @@ jobs:
 
       - name: Install Solana
         run: |
+          set -euo pipefail
           curl -sSfL https://release.solana.com/v${{ env.SOLANA_VERSION }}/install | sh
-          echo "${{ env.SOLANA_INSTALL_DIR }}/install/active_release/bin" >> $GITHUB_PATH
-
-      - name: Verify Solana
-        run: |
+          SOLANA_BIN="$HOME/.local/share/solana/install/active_release/bin"
+          echo "$SOLANA_BIN" >> $GITHUB_PATH
+          echo "PATH=$SOLANA_BIN:$PATH" >> $GITHUB_ENV
+          export PATH="$SOLANA_BIN:$PATH"
           solana --version
           solana-keygen --version
 
