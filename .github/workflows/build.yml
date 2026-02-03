@@ -51,9 +51,9 @@ jobs:
       - name: Verify installations
         run: |
           solana --version
-          which anchor
-          anchor --version || echo "anchor installed at: $(which anchor)"
           rustc --version
+          ls -la $HOME/.cargo/bin/
+          $HOME/.cargo/bin/anchor --version || true
 
       - name: Install dependencies
         run: yarn install
@@ -62,7 +62,7 @@ jobs:
         run: solana-keygen new --no-bip39-passphrase
 
       - name: Build program
-        run: anchor build
+        run: $HOME/.cargo/bin/anchor build
 
       - name: Run tests
-        run: anchor test
+        run: $HOME/.cargo/bin/anchor test
