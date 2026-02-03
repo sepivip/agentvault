@@ -48,6 +48,8 @@ jobs:
         run: |
           rm -f Cargo.lock
           cargo +1.76.0 generate-lockfile
+          cargo +1.76.0 update -p borsh@1.6.0 --precise 1.5.0
+          cargo +1.76.0 update -p borsh-derive@1.6.0 --precise 1.5.0
           head -n 3 Cargo.lock
 
       - name: Install dependencies
