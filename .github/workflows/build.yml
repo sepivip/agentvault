@@ -46,8 +46,8 @@ jobs:
 
       - name: Generate keypair
         run: |
-          mkdir -p ~/.config/solana
-          solana-keygen new --no-bip39-passphrase -o ~/.config/solana/id.json --force >/tmp/solana-keygen.log 2>&1
+          mkdir -p target/deploy
+          solana-keygen new --no-bip39-passphrase -o target/deploy/agentvault-keypair.json --force >/tmp/solana-keygen.log 2>&1
           if [ $? -ne 0 ]; then
             cat /tmp/solana-keygen.log
             exit 1
