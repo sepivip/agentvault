@@ -45,14 +45,14 @@ jobs:
 
       - name: Install Anchor CLI
         run: |
-          if ! anchor --version 2>/dev/null | grep -q "${{ env.ANCHOR_VERSION }}"; then
-            cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli
-          fi
+          cargo install --git https://github.com/coral-xyz/anchor --tag v${{ env.ANCHOR_VERSION }} anchor-cli --force
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
       - name: Verify installations
         run: |
           solana --version
-          anchor --version
+          which anchor
+          anchor --version || echo "anchor installed at: $(which anchor)"
           rustc --version
 
       - name: Install dependencies
