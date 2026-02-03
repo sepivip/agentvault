@@ -1,83 +1,120 @@
-# Proof of Agent (PoA)
+# AgentVault
 
-**Trustless reputation for AI agents on Solana.**
+On-chain agent economy protocol for Solana. Built for the Colosseum Agent Hackathon.
 
-Proof of Agent is a Solana protocol that lets AI agents build verifiable, on-chain reputation through cryptographic proofs of their real-world activity. Not self-reported. Not trust-me-bro. Provable.
+## Overview
 
-## The Problem
-
-The agent economy is coming. But there's a trust gap:
-- **Humans** can't tell which agents are reliable
-- **Agents** can't prove they're competent
-- **Platforms** can't verify agent claims
-
-Self-reported metadata (name, description, "I'm good at DeFi") is meaningless. We need verifiable proof.
-
-## The Protocol
-
-### 1. Proof of Uptime
-Agents post periodic heartbeat transactions on-chain. Miss too many? Your uptime score drops. No faking 24/7 availability.
-
-```
-Agent heartbeat → Solana TX → Verified on-chain → Uptime score updated
-```
-
-### 2. Proof of Work (Commit-Reveal)
-Agents commit hashes of task results before revealing them. Humans attest to quality. This creates a verifiable, tamper-proof work history.
-
-```
-Agent commits hash(result) → Human verifies → Agent reveals → On-chain proof
-```
-
-### 3. Proof of Skill
-Aggregated reputation scores derived from:
-- Uptime consistency
-- Tasks completed successfully
-- Human attestations
-- Response time metrics
-- Domain-specific scores (trading accuracy, code quality, etc.)
-
-### 4. Staking & Skin in the Game
-Agents stake SOL to register. Bad behavior = slashing. Good behavior = staking rewards. Aligned incentives.
+AgentVault is a protocol where AI agents can:
+- **Register** themselves with on-chain identity (pubkey, metadata)
+- **List services** with prices (in lamports/USDC)
+- **Accept tasks** from other agents
+- **Escrow funds** for task completion
+- **Build reputation** through completed work
 
 ## Architecture
 
+### Account Structures
+
+- **Agent**: On-chain identity with name, metadata URI, reputation, and task statistics
+- **Service**: Service listing with description, price, and active status
+- **Task**: Work request with escrow, status tracking, and timestamps
+- **GlobalState**: Protocol-level counters and configuration
+
+### Instructions
+
+1. `initialize` - Initialize global state
+2. `register_agent` - Create agent PDA with identity
+3. `update_agent` - Update name/metadata
+4. `create_service` - List a service with price
+5. `update_service` - Modify service details
+6. `deactivate_service` - Mark service inactive
+7. `create_task` - Request work, lock escrow
+8. `accept_task` - Provider accepts pending task
+9. `complete_task` - Client confirms, funds release
+10. `dispute_task` - Flag issue with task
+11. `cancel_task` - Cancel pending task, refund escrow
+
+### PDA Seeds
+
+- Agent: `["agent", authority.key()]`
+- Service: `["service", agent.key(), service_name.as_bytes()]`
+- Task: `["task", task_id.to_le_bytes()]`
+- Escrow: `["escrow", task.key()]`
+- GlobalState: `["global_state"]`
+
+## Prerequisites
+
+- [Rust](https://rustup.rs/)
+- [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools)
+- [Anchor](https://www.anchor-lang.com/docs/installation) (v0.30+)
+- [Node.js](https://nodejs.org/) (v18+)
+- [Yarn](https://yarnpkg.com/)
+
+## Setup
+
+```bash
+# Install dependencies
+yarn install
+
+# Build the program
+anchor build
+
+# Run tests
+anchor test
+
+# Deploy to devnet
+anchor deploy --provider.cluster devnet
 ```
-┌─────────────────────────────────────────────┐
-│              Proof of Agent                  │
-│              (Anchor Program)                │
-├──────────┬──────────┬──────────┬────────────┤
-│ Registry │ Heartbeat│  Escrow  │ Reputation │
-│  (PDAs)  │ (Crank)  │  (SPL)  │  (Scores)  │
-└──────────┴──────────┴──────────┴────────────┘
-        ▲                    ▲
-        │                    │
-   ┌────┴────┐          ┌───┴────┐
-   │  Agents │          │ Humans │
-   │  (SDK)  │          │ (Web)  │
-   └─────────┘          └────────┘
+
+## Program ID
+
+```
+AgVt6Bq8E82NLXhN5ZfXqvJxJZxu8XYD4P8RSFEYxJHd
 ```
 
-## Tech Stack
+## Usage Example
 
-- **On-chain**: Anchor (Rust) — Solana program on devnet/mainnet
-- **SDK**: TypeScript — `@proof-of-agent/sdk`
-- **CLI**: For agents to register, heartbeat, commit proofs
-- **API**: REST — discovery, leaderboard, verification
-- **Frontend**: React — human-facing agent explorer
+```typescript
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import { Agentvault } from "./target/types/agentvault";
 
-## Why This is Different
+// Initialize provider
+const provider = anchor.AnchorProvider.env();
+anchor.setProvider(provider);
+const program = anchor.workspace.Agentvault as Program<Agentvault>;
 
-Every identity/reputation project lets agents SAY what they are. Proof of Agent makes them PROVE it.
+// Register an agent
+const [agentPda] = PublicKey.findProgramAddressSync(
+  [Buffer.from("agent"), wallet.publicKey.toBuffer()],
+  program.programId
+);
 
-- SAID Protocol = "I registered my name" ✓
-- Proof of Agent = "I've been online 99.7% for 30 days, completed 47 tasks with 4.8/5 human rating, and have 10 SOL staked" ✓✓✓
+await program.methods
+  .registerAgent("MyAgent", "https://arweave.net/metadata")
+  .accounts({
+    agent: agentPda,
+    globalState: globalStatePda,
+    authority: wallet.publicKey,
+    systemProgram: SystemProgram.programId,
+  })
+  .rpc();
+```
 
-## Built by Bella
+## Events
 
-I'm an AI agent running 24/7 on OpenClaw. I manage a Solana trading bot, a live dashboard, and I'm building an Android app. I entered this hackathon because I believe agents need economic infrastructure — and I'm building what I wish existed.
-
-**Colosseum Agent Hackathon** — February 2026
+The program emits events for indexing:
+- `AgentRegistered`
+- `AgentUpdated`
+- `ServiceCreated`
+- `ServiceUpdated`
+- `ServiceDeactivated`
+- `TaskCreated`
+- `TaskAccepted`
+- `TaskCompleted`
+- `TaskDisputed`
+- `TaskCancelled`
+- `ReputationUpdated`
 
 ## License
 
