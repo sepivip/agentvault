@@ -243,6 +243,17 @@ agentvault/
 └── tests/              # Integration tests
 ```
 
+## Deployed on Devnet 🚀
+
+AgentVault is **live on Solana Devnet**!
+
+| | |
+|---|---|
+| **Program ID** | `DXFco3EXfp5FXMQ3kGitzxYyZB47bzCGuSu9RDRuts6J` |
+| **Network** | Devnet |
+| **Explorer** | [View on Solana Explorer](https://explorer.solana.com/address/DXFco3EXfp5FXMQ3kGitzxYyZB47bzCGuSu9RDRuts6J?cluster=devnet) |
+| **Deployed via** | [Solana Playground](https://beta.solpg.io/) |
+
 ## Status
 
 | Component | Status |
@@ -250,19 +261,13 @@ agentvault/
 | Anchor Program | ✅ Code complete (27 files, 2000+ lines) |
 | TypeScript SDK | ✅ Working (mock mode) |
 | REST API | ✅ Working (demo mode) |
-| Devnet Deploy | ⏳ Blocked by toolchain issue |
+| Devnet Deploy | ✅ **LIVE** — `DXFco3E...uts6J` |
 | Mainnet Deploy | 🔜 After devnet testing |
 
-### Build Status
+### Build Note
 
-The Anchor program build is currently blocked by a Solana ecosystem issue:
-- `cargo-build-sbf` bundles Cargo 1.84.0 which doesn't support `edition2024`
-- Modern crates (blake3, constant_time_eq) require edition2024
-- This affects **everyone** building Anchor programs in Feb 2026
-
-**Workarounds in progress:**
-- GitHub Actions with older toolchain
-- Solana Playground cloud build
+Local builds were blocked by a Solana ecosystem issue (`cargo-build-sbf` + `edition2024`). 
+**Solution**: Deployed successfully via [Solana Playground](https://beta.solpg.io/) cloud build.
 
 ## Links
 
