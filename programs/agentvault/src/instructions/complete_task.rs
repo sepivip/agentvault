@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use anchor_lang::system_program;
 use crate::state::{Agent, Task, TaskStatus, GlobalState, REPUTATION_PER_TASK};
 use crate::errors::AgentVaultError;
 use crate::events::{TaskCompleted, ReputationUpdated};
@@ -61,12 +62,14 @@ pub struct CompleteTask<'info> {
 }
 
 pub fn handler(ctx: Context<CompleteTask>) -> Result<()> {
+    let task_key = ctx.accounts.task.key();
+    let escrow_bump = ctx.bumps.escrow;
+    let escrow_amount = ctx.accounts.task.escrow;
+
     let task = &mut ctx.accounts.task;
     let provider_agent = &mut ctx.accounts.provider_agent;
     let global_state = &mut ctx.accounts.global_state;
     let clock = Clock::get()?;
-
-    let escrow_amount = task.escrow;
 
     // Update task status
     task.status = TaskStatus::Completed;
@@ -85,9 +88,21 @@ pub fn handler(ctx: Context<CompleteTask>) -> Result<()> {
         .checked_add(1)
         .ok_or(AgentVaultError::ArithmeticOverflow)?;
 
-    // Transfer escrow to provider
-    **ctx.accounts.escrow.try_borrow_mut_lamports()? -= escrow_amount;
-    **ctx.accounts.provider_authority.try_borrow_mut_lamports()? += escrow_amount;
+    // Transfer escrow to provider. The escrow PDA is system-owned (funded with
+    // system_program::transfer on create_task), so a direct lamport debit is
+    // rejected by the runtime. Sign the transfer with the escrow PDA seeds.
+    let seeds: &[&[u8]] = &[b"escrow", task_key.as_ref(), &[escrow_bump]];
+    system_program::transfer(
+        CpiContext::new_with_signer(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.escrow.to_account_info(),
+                to: ctx.accounts.provider_authority.to_account_info(),
+            },
+            &[seeds],
+        ),
+        escrow_amount,
+    )?;
 
     // Emit events
     emit!(TaskCompleted {
